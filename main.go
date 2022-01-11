@@ -50,7 +50,7 @@ func isGoGet(req *http.Request) bool {
 
 func printRepo(repo, path string) string {
 	var b strings.Builder
-	// fmt.Fprintf(&b, "<a href=\"%s/%s\"><img src=\"%s/%s?status.svg\" alt=\"godocs.io\"/></a>", GoDocsRoot, path, GoDocsRoot, path)
+	//fmt.Fprintf(&b, "<a href=\"%s/%s\"><img src=\"%s/%s?status.svg\" alt=\"godocs.io\"/></a>", GoDocsRoot, path, GoDocsRoot, path)
 	//fmt.Fprintf(&b, "[<a href=\"%s/%s\">docs</a>] ", GoDocsRoot, path)
 	fmt.Fprintf(&b, "<a href=\"/%s\" title=\"%s/%s -> %s\">%s/%s</a> ", repo, Host, repo, path, Host, repo)
 	return b.String()
@@ -63,7 +63,7 @@ func main() {
 		if req.URL.Path == "/" {
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
 			fmt.Fprintf(w, "<pre>%s\n\n", Title)
-			fmt.Fprintf(w, "Repos:\n")
+			fmt.Fprintf(w, "Packages:\n")
 			for k, v := range Repos {
 				//fmt.Fprintf(w, " — <a href=\"/%s\">%s/%s</a>\n", k, Host, k)
 				fmt.Fprintf(w, " — %s\n", printRepo(k, v))
@@ -90,5 +90,5 @@ func main() {
 			}
 		}
 	})
-	http.ListenAndServe("127.0.0.1:8082", mux)
+	http.ListenAndServe(ListenAddr, mux)
 }
