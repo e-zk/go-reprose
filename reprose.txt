@@ -1,3 +1,5 @@
+# repo		git url					http redirect (optional)
 wslcheck	https://github.com/e-zk/wslcheck
 subc    	https://github.com/e-zk/subc
-reprose         https://github.com/e-zk/reprose
+reprose         https://github.com/e-zk/go-reprose
+sghs		_git@git.zakaria.org:sghs.git		https://github.com/e-zk/sghs

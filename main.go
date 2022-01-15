@@ -14,24 +14,45 @@ const (
 	Title           = "zakaria's golang repo"
 	Host            = "go.zakaria.org"
 	DefaultRedirect = "https://git.zakaria.org/"
+	Head            = `<meta charset="utf-8"><meta content="width=device-width,initial-scale=1" name="viewport">`
 )
 
-var Repos map[string]string
+type Repo struct {
+	Git  string
+	Http string
+}
+
+var Repos map[string]Repo
 
 func readRepos() error {
-	Repos = make(map[string]string)
+	Repos = make(map[string]Repo)
 	f, err := os.Open(ReposFile)
 	if err != nil {
 		return err
 	}
+
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		line := scanner.Text()
+
+		// skip comments
+		if strings.HasPrefix(line, "#") {
+			continue
+		}
+
+		// split on whitespace
 		split := strings.Fields(line)
-		if len(split) != 2 {
+		if len(split) < 2 {
 			return fmt.Errorf("error parsing repos file")
 		}
-		Repos[split[0]] = split[1]
+
+		// if separate http redirect is specified, use it
+		// otherwise, use the git url for redirect
+		if len(split) == 3 {
+			Repos[split[0]] = Repo{split[1], split[2]}
+		} else {
+			Repos[split[0]] = Repo{split[1], split[1]}
+		}
 	}
 	return nil
 }
@@ -48,12 +69,8 @@ func isGoGet(req *http.Request) bool {
 	return false
 }
 
-func printRepo(repo, path string) string {
-	var b strings.Builder
-	//fmt.Fprintf(&b, "<a href=\"%s/%s\"><img src=\"%s/%s?status.svg\" alt=\"godocs.io\"/></a>", GoDocsRoot, path, GoDocsRoot, path)
-	//fmt.Fprintf(&b, "[<a href=\"%s/%s\">docs</a>] ", GoDocsRoot, path)
-	fmt.Fprintf(&b, "<a href=\"/%s\" title=\"%s/%s -> %s\">%s/%s</a> ", repo, Host, repo, path, Host, repo)
-	return b.String()
+func printRepo(base string, repo Repo) string {
+	return fmt.Sprintf("<a href=\"/%s\" title=\"%s/%s -> %s\">%s/%s</a> ", base, Host, base, repo.Http, Host, base)
 }
 
 func main() {
@@ -62,29 +79,36 @@ func main() {
 	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		if req.URL.Path == "/" {
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			fmt.Fprintf(w, "<html><head>")
+			fmt.Fprintf(w, "<title>%s</title>", Title)
+			fmt.Fprintf(w, "%s", Head)
+			fmt.Fprintf(w, "</head><body>")
 			fmt.Fprintf(w, "<pre>%s\n\n", Title)
 			fmt.Fprintf(w, "Packages:\n")
-			for k, v := range Repos {
-				//fmt.Fprintf(w, " — <a href=\"/%s\">%s/%s</a>\n", k, Host, k)
-				fmt.Fprintf(w, " — %s\n", printRepo(k, v))
+			for basename, repo := range Repos {
+				fmt.Fprintf(w, " — %s\n", printRepo(basename, repo))
 			}
 			fmt.Fprintf(w, "</pre>")
+			fmt.Fprintf(w, "</body></html>")
 
 			return
 		}
 
-		for k, v := range Repos {
-			if req.URL.Path == "/"+k {
+		for basename, repo := range Repos {
+			if req.URL.Path == "/"+basename {
+				// if go-get header is not present redirect to http
 				if !isGoGet(req) {
-					http.Redirect(w, req, v, http.StatusPermanentRedirect)
+					http.Redirect(w, req, repo.Http, http.StatusPermanentRedirect)
 					return
 				}
+
+				w.Header().Set("Content-Type", "text/html; charset=utf-8")
 				fmt.Fprintf(w, "<html><head>")
-				fmt.Fprintf(w, "<title>%s</title>", k)
-				fmt.Fprintf(w, "<meta name=\"go-import\" content=\"%s/%s git %s\">", Host, k, v)
-				fmt.Fprintf(w, "<meta name=\"go-source\" content=\"%s/%s _ %s/tree{/dir} %s/tree{/dir}/{file}#n{line}\">", Host, k, v, v)
+				fmt.Fprintf(w, "<title>%s</title>", basename)
+				fmt.Fprintf(w, "<meta name=\"go-import\" content=\"%s/%s git %s\">", Host, basename, repo.Git)
+				// fmt.Fprintf(w, "<meta name=\"go-source\" content=\"%s/%s _ %s/tree{/dir} %s/tree{/dir}/{file}#n{line}\">", Host, basename, url, url)
 				fmt.Fprintf(w, "</head>")
-				fmt.Fprintf(w, "<body>go get %s/%s</body>", Host, k)
+				fmt.Fprintf(w, "<body>go get %s/%s</body>", Host, basename)
 				fmt.Fprintf(w, "</html>")
 				return
 			}
