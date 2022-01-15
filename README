@@ -2,9 +2,11 @@ reprose
 ========
 basic golang package server. heavily based on golang-package-server[^1].
 
+(anti)features
+===============
 - lists packages on index.
-- redirects to repository path.
-- serves proper go-import meta tags.
+- on browser request, redirects to repository path or http url.
+- serves proper go-import meta tag.
 - example instance: https://go.zakaria.org/.
 
 usage
