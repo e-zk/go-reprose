@@ -14,7 +14,10 @@ const (
 	Title           = "zakaria's golang repo"
 	Host            = "go.zakaria.org"
 	DefaultRedirect = "https://git.zakaria.org/"
-	Head            = `<meta charset="utf-8"><meta content="width=device-width,initial-scale=1" name="viewport">`
+	Head            = `<meta charset="utf-8"><meta content="width=device-width,initial-scale=1" name="viewport"><style>
+	                   pre { line-height: calc(100% * 1.1618); font-size: 100% }
+	                   body { margin: 1rem auto; max-width: 50rem; font-size: 100%; line-height: calc(100% * 1.618) }
+	                   </style>`
 )
 
 type Repo struct {
@@ -86,7 +89,7 @@ func main() {
 			fmt.Fprintf(w, "<pre>%s\n\n", Title)
 			fmt.Fprintf(w, "Packages:\n")
 			for basename, repo := range Repos {
-				fmt.Fprintf(w, " — %s\n", printRepo(basename, repo))
+				fmt.Fprintf(w, "&bullet; %s\n", printRepo(basename, repo))
 			}
 			fmt.Fprintf(w, "</pre>")
 			fmt.Fprintf(w, "</body></html>")
