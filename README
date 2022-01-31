@@ -3,14 +3,14 @@ reprose
 basic golang package server. heavily based on golang-package-server[^1].
 
 (anti)features
-===============
+---------------
 - lists packages on index.
 - on browser request, redirects to repository path or http url.
 - serves proper go-import meta tag.
 - example instance: https://go.zakaria.org/.
 
 usage
-======
+------
 - put package name and repository associations in /etc/reprose.txt.
 - edit the constants at the beginning of main.go
 - build with:
@@ -18,5 +18,5 @@ usage
 - run:
 	./reprose
 
-===
+---
 1: https://git.zx2c4.com/golang-package-server/
